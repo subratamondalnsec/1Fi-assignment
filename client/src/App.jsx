@@ -5,8 +5,9 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { ProductDetailsPage } from './pages/ProductDetailsPage';
 
 export default function App() {
-  return <CartProvider><AppShell><Routes><Route path="/" element={<HomePage />} /><Route path="/products/:slug" element={<ProductDetailsPage />} /><Route path="/cart" element={<CartPage />} /><Route path="/checkout" element={<CheckoutPage />} /><Route path="/404" element={<NotFoundPage />} /><Route path="*" element={<Navigate to="/404" replace />} /></Routes></AppShell></CartProvider>;
+  return <CartProvider><AppShell><Routes><Route path="/" element={<HomePage />} /><Route path="/products/:slug" element={<ProductDetailsPage />} /><Route path="/cart" element={<CartPage />} /><Route path="/checkout" element={<CheckoutPage />} /><Route path="/order-success/:orderId" element={<OrderSuccessPage />} /><Route path="/404" element={<NotFoundPage />} /><Route path="*" element={<Navigate to="/404" replace />} /></Routes></AppShell></CartProvider>;
 }

@@ -23,7 +23,9 @@ project/
 └── package.json
 ```
 
-This phase intentionally contains no product, variant, EMI, cart, authentication, or payment business implementation. The only API endpoint is `GET /api/health`, which verifies the server foundation once MongoDB is configured.
+The commerce flow uses server-side product snapshots and Razorpay signature verification. A successful callback is verified by the backend, checked against the server-reconstructed INR total, and then persisted as an order with historical product, variant, and EMI metadata. Stock is decremented during order creation, and the client clears its cart only after the API returns the created order ID.
+
+The order endpoint is `POST /api/orders`; it requires the Razorpay order ID, payment ID, and signature and never accepts a client-provided `verified` flag as proof. Duplicate Razorpay payment IDs return the existing order. A MongoDB transaction is used when available; standalone MongoDB deployments use guarded stock updates with rollback if persistence fails.
 
 ## Local development
 
