@@ -18,6 +18,7 @@ export function buildCartItem(product, variant, emiPlan) {
     storage: variant.storage,
     color: variant.color,
     imageUrl: variant.imageUrl,
+    images: variant.images,
     price: variant.price,
     mrp: variant.mrp,
     quantity: 1,
@@ -26,9 +27,14 @@ export function buildCartItem(product, variant, emiPlan) {
     monthlyPayment: emiPlan.monthlyAmount,
     interestRate: emiPlan.interestRate,
     cashback: emiPlan.cashback,
+    firstPaymentAmount: emiPlan.monthlyAmount,
   };
 }
 
 export function calculateCartSubtotal(items = []) {
   return items.reduce((total, item) => total + (Number.isFinite(item.price) ? item.price * item.quantity : 0), 0);
+}
+
+export function calculateCartFirstPayment(items = []) {
+  return items.reduce((total, item) => total + (Number.isFinite(item.monthlyPayment) ? item.monthlyPayment * item.quantity : 0), 0);
 }

@@ -57,7 +57,7 @@ export function CheckoutPage() {
       const Razorpay = await loadRazorpayCheckout();
       setPaymentState('creating-order');
       setNotice('Creating your secure payment order…');
-      const order = await createPaymentOrder({ amount: summary.finalAmount, currency: 'INR' });
+      const order = await createPaymentOrder({ amount: summary.finalAmount, items: items.map(({ productId, variantId, emiPlanId, quantity }) => ({ productId, variantId, emiPlanId, quantity })), currency: 'INR' });
       let paymentResponseReceived = false;
       let verificationStarted = false;
       const checkout = new Razorpay({

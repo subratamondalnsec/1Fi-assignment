@@ -1,4 +1,4 @@
-import { calculateCartSubtotal } from './cartHelpers';
+import { calculateCartFirstPayment, calculateCartSubtotal } from './cartHelpers';
 
 export const checkoutFields = ['fullName', 'phone', 'email', 'address', 'city', 'state', 'pincode'];
 
@@ -15,11 +15,13 @@ export function validateAddress(address) {
 
 export function getCheckoutSummary(items = []) {
   const subtotal = calculateCartSubtotal(items);
+  const firstPayment = calculateCartFirstPayment(items);
   return {
     totalItems: items.reduce((total, item) => total + item.quantity, 0),
     subtotal,
     platformFee: 0,
     deliveryFee: 0,
-    finalAmount: subtotal,
+    firstPayment,
+    finalAmount: firstPayment,
   };
 }
