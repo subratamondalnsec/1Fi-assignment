@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
-import { createPaymentOrder, loadRazorpayCheckout } from '../services/paymentApi';
+import { createOrder } from '../services/orderApi';
+import { createPaymentOrder, loadRazorpayCheckout, verifyPayment } from '../services/paymentApi';
 import { createEmptyAddress, getCheckoutSummary, validateAddress } from '../utils/checkoutHelpers';
+import { buildOrderRequest } from '../utils/orderHelpers';
 import { formatInterestRate } from '../utils/emiHelpers';
 import { formatCurrency } from '../utils/productHelpers';
 
@@ -17,11 +19,13 @@ const addressFields = [
 ];
 
 export function CheckoutPage() {
-  const { items } = useCart();
+  const { items, clearCart } = useCart();
+  const navigate = useNavigate();
   const [address, setAddress] = useState(createEmptyAddress);
   const [errors, setErrors] = useState({});
   const [notice, setNotice] = useState('');
   const [paymentState, setPaymentState] = useState('idle');
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const summary = getCheckoutSummary(items);
 
   function handleChange(event) {
@@ -55,6 +59,7 @@ export function CheckoutPage() {
       setNotice('Creating your secure payment order…');
       const order = await createPaymentOrder({ amount: summary.finalAmount, currency: 'INR' });
       let paymentResponseReceived = false;
+      let verificationStarted = false;
       const checkout = new Razorpay({
         key: razorpayKeyId,
         amount: order.amount,
@@ -63,10 +68,46 @@ export function CheckoutPage() {
         name: '1Fi',
         description: 'Smartphone purchase / EMI checkout',
         prefill: { name: address.fullName, email: address.email, contact: address.phone },
-        handler: () => {
+        handler: async (paymentResponse) => {
           paymentResponseReceived = true;
-          setPaymentState('response-received');
-          setNotice('Payment response received. Verification is pending.');
+          if (verificationStarted || isVerifyingPayment) return;
+
+          const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = paymentResponse ?? {};
+          if (![razorpay_order_id, razorpay_payment_id, razorpay_signature].every((value) => typeof value === 'string' && value.trim())) {
+            setPaymentState('idle');
+            setNotice('Payment verification could not be started. Your cart is unchanged.');
+            return;
+          }
+
+          verificationStarted = true;
+          setIsVerifyingPayment(true);
+          setPaymentState('verifying');
+          setNotice('Verifying payment...');
+          try {
+            const verification = await verifyPayment({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
+            if (verification.verified === true) {
+              setPaymentState('creating-order');
+              setNotice('Creating your order...');
+              try {
+                const order = await createOrder(buildOrderRequest({ items, address, payment: { razorpay_order_id, razorpay_payment_id, razorpay_signature } }));
+                clearCart();
+                setPaymentState('verified');
+                setNotice('Order confirmed.');
+                navigate(`/order-success/${order.id}`, { replace: true });
+              } catch (error) {
+                setPaymentState('idle');
+                setNotice(error.message || 'Order creation failed. Your cart is unchanged.');
+              }
+            } else {
+              setPaymentState('idle');
+              setNotice('Payment verification failed. Your cart is unchanged.');
+            }
+          } catch {
+            setPaymentState('idle');
+            setNotice('Payment verification failed. Your cart is unchanged.');
+          } finally {
+            setIsVerifyingPayment(false);
+          }
         },
         modal: {
           ondismiss: () => {
