@@ -15,6 +15,7 @@ function toProductResponse(product, includeEmiPlans = false) {
       color: variant.color,
       mrp: variant.mrp,
       price: variant.price,
+      images: variant.images?.length ? variant.images : (variant.imageUrl ? [variant.imageUrl] : []),
       imageUrl: variant.imageUrl,
       stock: variant.stock,
       ...(includeEmiPlans && {
