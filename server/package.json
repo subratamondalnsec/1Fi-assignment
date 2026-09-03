@@ -8,7 +8,8 @@
     "start": "node src/server.js",
     "seed": "node src/seed/seed.js",
     "lint": "eslint src",
-    "test:payment-verification": "node src/utils/paymentVerification.test.js"
+    "test:payment-verification": "node src/utils/paymentVerification.test.js",
+    "test:order-model": "node src/models/Order.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
