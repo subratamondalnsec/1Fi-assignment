@@ -2,11 +2,11 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const razorpayScriptId = 'razorpay-checkout-script';
 let razorpayScriptPromise;
 
-export async function createPaymentOrder({ amount, currency = 'INR' }) {
+export async function createPaymentOrder({ amount, items, currency = 'INR' }) {
   const response = await fetch(`${apiBaseUrl}/api/payments/create-order`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount, currency }),
+    body: JSON.stringify({ amount, items, currency }),
   });
   const payload = await response.json().catch(() => ({}));
 
