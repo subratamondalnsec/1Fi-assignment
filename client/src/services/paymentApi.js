@@ -14,6 +14,18 @@ export async function createPaymentOrder({ amount, currency = 'INR' }) {
   return payload.data;
 }
 
+export async function verifyPayment({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
+  const response = await fetch(`${apiBaseUrl}/api/payments/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ razorpay_order_id, razorpay_payment_id, razorpay_signature }),
+  });
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || !payload.success || payload.data?.verified !== true) throw new Error('Payment verification failed.');
+  return payload.data;
+}
+
 export function loadRazorpayCheckout() {
   if (window.Razorpay) return Promise.resolve(window.Razorpay);
   if (razorpayScriptPromise) return razorpayScriptPromise;

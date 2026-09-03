@@ -7,7 +7,8 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "seed": "node src/seed/seed.js",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test:payment-verification": "node src/utils/paymentVerification.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

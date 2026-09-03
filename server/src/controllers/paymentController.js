@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { getRazorpayClient } from '../config/razorpay.js';
 import { toPaise } from '../utils/money.js';
+import { verifyRazorpaySignature } from '../utils/paymentVerification.js';
 
 const supportedCurrencies = new Set(['INR']);
 
@@ -40,5 +41,25 @@ export async function createOrder(request, response, next) {
     const paymentError = new Error('Unable to create a payment order.');
     paymentError.statusCode = 502;
     return next(paymentError);
+  }
+}
+
+export function verifyPayment(request, response, next) {
+  const { razorpay_order_id: orderId, razorpay_payment_id: paymentId, razorpay_signature: signature } = request.body ?? {};
+
+  if (![orderId, paymentId, signature].every((value) => typeof value === 'string' && value.trim())) {
+    return response.status(400).json({ success: false, message: 'Payment verification failed' });
+  }
+
+  try {
+    const verified = verifyRazorpaySignature({ orderId, paymentId, signature, secret: process.env.RAZORPAY_KEY_SECRET });
+    if (!verified) return response.status(400).json({ success: false, message: 'Payment verification failed' });
+    return response.status(200).json({ success: true, data: { verified: true } });
+  } catch (error) {
+    if (error.code === 'RAZORPAY_VERIFICATION_CONFIG_MISSING') {
+      error.statusCode = 503;
+      error.publicMessage = 'Payment service is not configured.';
+    }
+    return next(error);
   }
 }

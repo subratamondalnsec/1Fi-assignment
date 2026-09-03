@@ -5,5 +5,5 @@ export function notFound(request, response) {
 export function errorHandler(error, _request, response, _next) {
   void _next;
   console.error(error);
-  response.status(error.statusCode ?? 500).json({ success: false, message: 'Internal server error' });
+  response.status(error.statusCode ?? 500).json({ success: false, message: error.publicMessage ?? 'Internal server error' });
 }
