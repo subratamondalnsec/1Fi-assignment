@@ -11,7 +11,7 @@ function isNonEmptyString(value) {
 }
 
 function publicOrder(order) {
-  return { id: order._id.toString(), orderNumber: order.orderNumber, items: order.items, customer: order.customer, shippingAddress: order.shippingAddress, subtotal: order.subtotal, platformFee: order.platformFee, deliveryFee: order.deliveryFee, totalAmount: order.totalAmount, currency: order.currency, paymentMethod: order.paymentMethod, paymentStatus: order.paymentStatus, razorpayOrderId: order.razorpayOrderId, razorpayPaymentId: order.razorpayPaymentId, createdAt: order.createdAt };
+  return { id: order._id.toString(), orderNumber: order.orderNumber, items: order.items, customer: order.customer, shippingAddress: order.shippingAddress, subtotal: order.subtotal, platformFee: order.platformFee, deliveryFee: order.deliveryFee, totalAmount: order.totalAmount, firstPaymentAmount: order.firstPaymentAmount, scheduledRepayment: order.scheduledRepayment, currency: order.currency, paymentMethod: order.paymentMethod, paymentStatus: order.paymentStatus, razorpayOrderId: order.razorpayOrderId, razorpayPaymentId: order.razorpayPaymentId, createdAt: order.createdAt };
 }
 
 function invalidRequest(message) {
@@ -52,7 +52,9 @@ async function reconstructItems(items) {
     if (!variant || !emiPlan) throw invalidRequest('A selected product variant or EMI plan is no longer available.');
     if (variant.stock < quantity) throw invalidRequest(`Insufficient stock for ${product.name}.`);
     stockUpdates.push({ productId: product._id, variantId: variant._id, quantity });
-    snapshots.push({ productId: product._id, productName: product.name, variantId: variant._id, variantName: variant.name, storage: variant.storage, color: variant.color, imageUrl: variant.imageUrl, unitPrice: variant.price, quantity, emiPlanId: emiPlan._id, emiTenure: emiPlan.tenure, emiMonthlyAmount: emiPlan.monthlyAmount, emiInterestRate: emiPlan.interestRate, emiCashback: emiPlan.cashback });
+    const nextDueDate = new Date();
+    nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+    snapshots.push({ productId: product._id, productName: product.name, variantId: variant._id, variantName: variant.name, storage: variant.storage, color: variant.color, imageUrl: variant.imageUrl, unitPrice: variant.price, quantity, emiPlanId: emiPlan._id, emiTenure: emiPlan.tenure, emiMonthlyAmount: emiPlan.monthlyAmount, emiInterestRate: emiPlan.interestRate, emiCashback: emiPlan.cashback, firstPaymentAmount: emiPlan.monthlyAmount, nextDueDate });
   }
   return { snapshots, stockUpdates };
 }
@@ -61,9 +63,10 @@ function calculateTotals(items) {
   const subtotal = items.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
   const platformFee = 0;
   const deliveryFee = 0;
-  const totalAmount = subtotal + platformFee + deliveryFee;
+  const totalAmount = items.reduce((total, item) => total + item.firstPaymentAmount * item.quantity, 0) + platformFee + deliveryFee;
+  const scheduledRepayment = items.reduce((total, item) => total + item.emiMonthlyAmount * item.emiTenure * item.quantity, 0);
   if (!Number.isFinite(subtotal) || !Number.isFinite(totalAmount) || totalAmount <= 0) throw invalidRequest('The order total is invalid.');
-  return { subtotal, platformFee, deliveryFee, totalAmount };
+  return { subtotal, platformFee, deliveryFee, totalAmount, firstPaymentAmount: totalAmount, scheduledRepayment };
 }
 
 async function decrementStock(productId, variantId, quantity, options = {}) {

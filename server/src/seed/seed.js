@@ -15,16 +15,21 @@ const imageSets = {
   realme: ['https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=85', 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=1200&q=85', 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=1200&q=85'],
 };
 
-function plans(monthlyAmount, cashback) {
-  return [{ tenure: 6, monthlyAmount, interestRate: 0, cashback, description: 'No-cost EMI with cashback.' }, { tenure: 12, monthlyAmount: Math.round(monthlyAmount / 2 * 1.045), interestRate: 4.5, cashback: cashback + 1500, description: 'Extended EMI with enhanced cashback.' }];
+function plans(price, cashback, explicitAmounts = {}) {
+  const terms = [3, 6, 12, 24, 36, 48, 60];
+  return terms.map((tenure) => {
+    const interestRate = tenure >= 36 ? 10.5 : 0;
+    const monthlyAmount = explicitAmounts[tenure] || (interestRate === 0 ? Math.round(price / tenure) : Math.round((price * (interestRate / 1200) * (1 + interestRate / 1200) ** tenure) / ((1 + interestRate / 1200) ** tenure - 1)));
+    return { tenure, monthlyAmount, interestRate, cashback: cashback + (tenure >= 12 ? 1000 : 0), description: interestRate === 0 ? 'Illustrative no-cost EMI plan.' : 'Illustrative reducing-balance EMI plan.' };
+  });
 }
 
-function variant(storage, color, price, images, stock, cashback) {
-  return { name: `${storage} ${color}`, storage, color, mrp: price + 10000, price, images, imageUrl: images[0], stock, emiPlans: plans(Math.round(price / 6), cashback) };
+function variant(storage, color, price, images, stock, cashback, explicitAmounts) {
+  return { name: `${storage} ${color}`, storage, color, mrp: price + 10000, price, images, imageUrl: images[0], stock, emiPlans: plans(price, cashback, explicitAmounts) };
 }
 
 const products = [
-  { name: 'iPhone 17 Pro', slug: 'iphone-17-pro', description: 'Apple flagship smartphone with a pro-grade camera system and titanium design.', brand: 'Apple', category: 'smartphones', variants: [variant('256GB', 'Deep Blue', 134900, imageSets.iphone, 12, 3000), variant('512GB', 'Silver', 154900, imageSets.iphone, 8, 4000)] },
+  { name: 'iPhone 17 Pro', slug: 'iphone-17-pro', description: 'Apple flagship smartphone with a pro-grade camera system and titanium design.', brand: 'Apple', category: 'smartphones', variants: [variant('256GB', 'Deep Blue', 134900, imageSets.iphone, 12, 3000, { 3: 44967, 6: 22483, 12: 11242, 24: 5621, 36: 4297, 48: 3385, 60: 2842 }), variant('512GB', 'Silver', 154900, imageSets.iphone, 8, 4000)] },
   { name: 'Samsung Galaxy S24 Ultra', slug: 'samsung-galaxy-s24-ultra', description: 'Premium Android smartphone with Galaxy AI, S Pen, and a high-resolution camera.', brand: 'Samsung', category: 'smartphones', variants: [variant('256GB', 'Titanium Black', 115999, imageSets.samsung, 15, 2500), variant('512GB', 'Titanium Violet', 125999, imageSets.samsung, 9, 3000)] },
   { name: 'Google Pixel 9 Pro', slug: 'google-pixel-9-pro', description: 'Google smartphone featuring advanced computational photography and on-device AI.', brand: 'Google', category: 'smartphones', variants: [variant('256GB', 'Obsidian', 99999, imageSets.pixel, 14, 2000), variant('512GB', 'Porcelain', 109999, imageSets.pixel, 7, 2500)] },
   { name: 'OnePlus 13', slug: 'oneplus-13', description: 'A fast, refined flagship with a vivid display, Hasselblad camera system, and all-day battery.', brand: 'OnePlus', category: 'smartphones', variants: [variant('256GB', 'Midnight', 69999, imageSets.oneplus, 18, 1500), variant('512GB', 'Emerald', 76999, imageSets.oneplus, 11, 2000)] },

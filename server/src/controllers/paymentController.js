@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { getRazorpayClient } from '../config/razorpay.js';
 import { toPaise } from '../utils/money.js';
 import { verifyRazorpaySignature } from '../utils/paymentVerification.js';
+import { Product } from '../models/Product.js';
 
 const supportedCurrencies = new Set(['INR']);
 
@@ -10,8 +11,22 @@ function createReceipt() {
 }
 
 export async function createOrder(request, response, next) {
-  const { amount, currency: requestedCurrency } = request.body ?? {};
-  const amountInRupees = typeof amount === 'number' ? amount : Number(amount);
+  const { amount, items, currency: requestedCurrency } = request.body ?? {};
+  let authoritativeAmount = amount;
+  if (Array.isArray(items)) {
+    const products = await Product.find({ _id: { $in: items.map((item) => item?.productId) } });
+    const productsById = new Map(products.map((product) => [product._id.toString(), product]));
+    authoritativeAmount = 0;
+    for (const item of items) {
+      const product = productsById.get(item?.productId);
+      const variant = product?.variants.id(item?.variantId);
+      const plan = variant?.emiPlans.id(item?.emiPlanId);
+      const quantity = Number(item?.quantity);
+      if (!product || !variant || !plan || !Number.isInteger(quantity) || quantity < 1) return response.status(400).json({ success: false, message: 'The selected financing plan is invalid.' });
+      authoritativeAmount += plan.monthlyAmount * quantity;
+    }
+  }
+  const amountInRupees = typeof authoritativeAmount === 'number' ? authoritativeAmount : Number(authoritativeAmount);
   const currency = typeof requestedCurrency === 'string' ? requestedCurrency.trim().toUpperCase() : 'INR';
 
   if (amount === undefined || amount === null || amount === '' || !Number.isFinite(amountInRupees) || amountInRupees <= 0) {

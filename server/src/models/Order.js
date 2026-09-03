@@ -18,6 +18,8 @@ const orderItemSchema = new Schema(
     emiMonthlyAmount: { type: Number, required: true, min: 0.01 },
     emiInterestRate: { type: Number, required: true, min: 0 },
     emiCashback: { type: Number, required: true, min: 0 },
+    firstPaymentAmount: { type: Number, required: true, min: 0.01 },
+    nextDueDate: { type: Date },
   },
   { _id: false },
 );
@@ -41,6 +43,8 @@ const orderSchema = new Schema(
     platformFee: { type: Number, required: true, min: 0 },
     deliveryFee: { type: Number, required: true, min: 0 },
     totalAmount: { type: Number, required: true, min: 0.01 },
+    firstPaymentAmount: { type: Number, required: true, min: 0.01 },
+    scheduledRepayment: { type: Number, required: true, min: 0.01 },
     currency: { type: String, required: true, enum: ['INR'], default: 'INR' },
     paymentMethod: { type: String, required: true, enum: ['razorpay'], default: 'razorpay' },
     paymentStatus: { type: String, required: true, enum: ['paid', 'failed', 'refunded'], default: 'paid' },
