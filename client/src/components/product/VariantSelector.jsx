@@ -1,3 +1,5 @@
+import { resolveVariant } from '../../utils/variantResolver';
+
 const variantAttributes = [
   { key: 'storage', label: 'Storage' },
   { key: 'color', label: 'Color' },
@@ -9,9 +11,7 @@ export function VariantSelector({ variants, selectedVariant, onSelect }) {
   if (!availableAttributes.length) return null;
 
   function selectAttribute(attribute, value) {
-    const otherAttributes = availableAttributes.filter(({ key }) => key !== attribute);
-    const matchingVariant = variants.find((variant) => variant[attribute] === value && otherAttributes.every(({ key }) => !selectedVariant[key] || variant[key] === selectedVariant[key])) || variants.find((variant) => variant[attribute] === value);
-    if (matchingVariant) onSelect(matchingVariant);
+    onSelect(resolveVariant(variants, selectedVariant, attribute, value));
   }
 
   return <div className="space-y-5">{availableAttributes.map(({ key, label }) => {
