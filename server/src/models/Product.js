@@ -10,7 +10,7 @@ const emiPlanSchema = new Schema(
     cashback: { type: Number, default: 0, min: 0 },
     description: { type: String, trim: true, maxlength: 240 },
   },
-  { _id: false },
+  { _id: true },
 );
 
 const variantSchema = new Schema(
