@@ -1,21 +1,49 @@
-import { resolveVariant } from '../../utils/variantResolver';
+import { getAvailableStorages, getAvailableColors } from '../../utils/variantResolver';
 
-const variantAttributes = [
-  { key: 'storage', label: 'Storage' },
-  { key: 'color', label: 'Color' },
-];
+export function VariantSelector({ variants, selectedStorage, selectedColor, onStorageChange, onColorChange }) {
+  const storages = getAvailableStorages(variants);
+  const colors = getAvailableColors(variants);
 
-export function VariantSelector({ variants, selectedVariant, onSelect }) {
-  const availableAttributes = variantAttributes.filter(({ key }) => variants.some((variant) => typeof variant[key] === 'string' && variant[key].trim()));
+  if (!storages.length && !colors.length) return null;
 
-  if (!availableAttributes.length) return null;
-
-  function selectAttribute(attribute, value) {
-    onSelect(resolveVariant(variants, selectedVariant, attribute, value));
-  }
-
-  return <div className="space-y-5">{availableAttributes.map(({ key, label }) => {
-    const values = [...new Set(variants.map((variant) => variant[key]).filter(Boolean))];
-    return <fieldset key={key}><legend className="text-sm font-semibold text-slate-900">{label}: <span className="font-normal text-slate-600">{selectedVariant[key] || 'Not specified'}</span></legend><div className="mt-2 flex flex-wrap gap-2">{values.map((value) => <button aria-pressed={selectedVariant[key] === value} className={`rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${selectedVariant[key] === value ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-400'}`} key={value} onClick={() => selectAttribute(key, value)} type="button">{value}</button>)}</div></fieldset>;
-  })}</div>;
+  return <div className="space-y-5">
+    {storages.length > 0 && <fieldset>
+      <legend className="text-sm font-semibold text-slate-900">Storage: <span className="font-normal text-slate-600">{selectedStorage || 'Not specified'}</span></legend>
+      <div className="mt-2 flex flex-wrap gap-2">{storages.map((storage) => {
+        const isSelected = selectedStorage === storage;
+        return <button
+          key={storage}
+          onClick={() => onStorageChange(storage)}
+          type="button"
+          aria-pressed={isSelected}
+          className={`rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
+            isSelected
+              ? 'border-indigo-600 bg-indigo-600 text-white'
+              : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-400 cursor-pointer'
+          }`}
+        >
+          {storage}
+        </button>;
+      })}</div>
+    </fieldset>}
+    {colors.length > 0 && <fieldset>
+      <legend className="text-sm font-semibold text-slate-900">Color: <span className="font-normal text-slate-600">{selectedColor || 'Not specified'}</span></legend>
+      <div className="mt-2 flex flex-wrap gap-2">{colors.map((color) => {
+        const isSelected = selectedColor === color;
+        return <button
+          key={color}
+          onClick={() => onColorChange(color)}
+          type="button"
+          aria-pressed={isSelected}
+          className={`rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
+            isSelected
+              ? 'border-indigo-600 bg-indigo-600 text-white'
+              : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-400 cursor-pointer'
+          }`}
+        >
+          {color}
+        </button>;
+      })}</div>
+    </fieldset>}
+  </div>;
 }

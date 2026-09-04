@@ -8,7 +8,9 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { ProductDetailsPage } from './pages/ProductDetailsPage';
 import { RepaymentPreviewPage } from './pages/RepaymentPreviewPage';
+import { OrdersPage } from './pages/OrdersPage';
+import { OrderRepaymentPage } from './pages/OrderRepaymentPage';
 
 export default function App() {
-  return <CartProvider><AppShell><Routes><Route path="/" element={<HomePage />} /><Route path="/products/:slug" element={<ProductDetailsPage />} /><Route path="/cart" element={<CartPage />} /><Route path="/checkout" element={<CheckoutPage />} /><Route path="/repayment-preview" element={<RepaymentPreviewPage />} /><Route path="/order-success/:orderId" element={<OrderSuccessPage />} /><Route path="/404" element={<NotFoundPage />} /><Route path="*" element={<Navigate to="/404" replace />} /></Routes></AppShell></CartProvider>;
+  return <CartProvider><AppShell><Routes><Route path="/" element={<HomePage />} /><Route path="/products/:slug" element={<ProductDetailsPage />} /><Route path="/cart" element={<CartPage />} /><Route path="/checkout" element={<CheckoutPage />} /><Route path="/orders" element={<OrdersPage />} /><Route path="/orders/:orderId/repayment" element={<OrderRepaymentPage />} /><Route path="/repayment-preview" element={<RepaymentPreviewPage />} /><Route path="/order-success/:orderId" element={<OrderSuccessPage />} /><Route path="/404" element={<NotFoundPage />} /><Route path="*" element={<Navigate to="/404" replace />} /></Routes></AppShell></CartProvider>;
 }
