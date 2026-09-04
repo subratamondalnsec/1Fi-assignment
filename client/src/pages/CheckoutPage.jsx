@@ -7,6 +7,7 @@ import { createEmptyAddress, getCheckoutSummary, validateAddress } from '../util
 import { buildOrderRequest } from '../utils/orderHelpers';
 import { formatInterestRate } from '../utils/emiHelpers';
 import { formatCurrency } from '../utils/productHelpers';
+import { rememberOrderId } from '../utils/orderHistory';
 
 const addressFields = [
   { name: 'fullName', label: 'Full name', autoComplete: 'name' },
@@ -90,6 +91,7 @@ export function CheckoutPage() {
               setNotice('Creating your order...');
               try {
                 const order = await createOrder(buildOrderRequest({ items, address, payment: { razorpay_order_id, razorpay_payment_id, razorpay_signature } }));
+                rememberOrderId(order.id);
                 clearCart();
                 setPaymentState('verified');
                 setNotice('Order confirmed.');

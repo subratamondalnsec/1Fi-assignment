@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { EmiPlans } from '../components/emi/EmiPlans';
 import { RepaymentPreview } from '../components/emi/RepaymentPreview';
@@ -11,12 +11,14 @@ import { fetchProductBySlug } from '../services/productApi';
 import { buildCartItem } from '../utils/cartHelpers';
 import { calculateDemoInvestmentCoverage, getDemoEligibility } from '../utils/emiHelpers';
 import { formatCurrency, getStockStatus } from '../utils/productHelpers';
+import { getVariantByStorageAndColor } from '../utils/variantResolver';
 
 export function ProductDetailsPage() {
   const { slug } = useParams();
   const { addItem } = useCart();
   const [product, setProduct] = useState(null);
-  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedStorage, setSelectedStorage] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [selectedEmiPlan, setSelectedEmiPlan] = useState(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
@@ -29,12 +31,17 @@ export function ProductDetailsPage() {
         setStatus('loading');
         setError('');
         setProduct(null);
-        setSelectedVariant(null);
+        setSelectedStorage(null);
+        setSelectedColor(null);
         setSelectedEmiPlan(null);
         setCartFeedback(null);
         const loadedProduct = await fetchProductBySlug(slug, { signal: controller.signal });
         setProduct(loadedProduct);
-        setSelectedVariant(loadedProduct.variants[0] || null);
+        if (loadedProduct.variants.length > 0) {
+          const firstVariant = loadedProduct.variants[0];
+          setSelectedStorage(firstVariant.storage);
+          setSelectedColor(firstVariant.color);
+        }
         setStatus('success');
       } catch (requestError) {
         if (requestError.name !== 'AbortError') {
@@ -47,25 +54,44 @@ export function ProductDetailsPage() {
     return () => controller.abort();
   }, [slug]);
 
+  // Derive selectedVariant from storage and color selections
+  const selectedVariant = useMemo(() => {
+    if (!product || !selectedStorage || !selectedColor) return null;
+    return getVariantByStorageAndColor(product.variants, selectedStorage, selectedColor);
+  }, [product, selectedStorage, selectedColor]);
+
   if (status === 'loading') return <LoadingState />;
   if (status === 'not-found') return <NotFoundState />;
-  if (status === 'error' || !product || !selectedVariant) return <ErrorState message={error} />;
+  if (status === 'error' || !product) return <ErrorState message={error} />;
 
-  const stock = getStockStatus(selectedVariant.stock);
-  const emiPlans = Array.isArray(selectedVariant.emiPlans) ? selectedVariant.emiPlans : [];
+  const combinationUnavailable = !selectedVariant;
+  const stock = selectedVariant ? getStockStatus(selectedVariant.stock) : null;
+  const emiPlans = Array.isArray(selectedVariant?.emiPlans) ? selectedVariant.emiPlans : [];
   const investmentCoverage = calculateDemoInvestmentCoverage(selectedEmiPlan);
-  const demoInvestmentValue = selectedVariant.price * 0.5;
-  const demoEligibility = getDemoEligibility(demoInvestmentValue, selectedVariant.price);
+  const demoInvestmentValue = (selectedVariant?.price ?? 0) * 0.5;
+  const demoEligibility = getDemoEligibility(demoInvestmentValue, selectedVariant?.price ?? 0);
 
-  function handleVariantSelect(variant) {
-    if (variant.id !== selectedVariant.id) {
-      setSelectedVariant(variant);
-      setSelectedEmiPlan(null);
-      setCartFeedback(null);
-    }
+  function handleStorageChange(newStorage) {
+    // Storage changes independently; color remains the same
+    setSelectedStorage(newStorage);
+    // Reset EMI plan since variant changed
+    setSelectedEmiPlan(null);
+    setCartFeedback(null);
+  }
+
+  function handleColorChange(newColor) {
+    // Color changes independently; storage remains the same
+    setSelectedColor(newColor);
+    // Reset EMI plan since variant changed
+    setSelectedEmiPlan(null);
+    setCartFeedback(null);
   }
 
   function handleAddToCart() {
+    if (!selectedVariant) {
+      setCartFeedback({ type: 'error', message: 'This combination is unavailable.' });
+      return;
+    }
     if (!selectedEmiPlan) {
       setCartFeedback({ type: 'error', message: 'Select an EMI plan before adding this phone to your cart.' });
       return;
@@ -80,20 +106,20 @@ export function ProductDetailsPage() {
 
   return <section className="space-y-6">
     <Link className="inline-flex text-sm font-medium text-indigo-600 hover:text-indigo-700" to="/">← Back to catalogue</Link>
-    <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-      <ProductGallery images={selectedVariant.images} imageUrl={selectedVariant.imageUrl} productName={product.name} variantName={selectedVariant.name} />
+    <div className="grid gap-8 lg:grid-cols-2 lg:items-start lg:gap-12">
+      <div className="lg:sticky lg:top-24"><ProductGallery images={selectedVariant?.images} imageUrl={selectedVariant?.imageUrl} productName={product.name} variantName={selectedVariant?.name} selectedColor={selectedColor} /></div>
       <div className="space-y-7">
         <div className="space-y-3"><p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">{product.brand || 'Smartphone'}</p><h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{product.name}</h1>{product.description && <p className="max-w-2xl leading-7 text-slate-600">{product.description}</p>}</div>
-        <ProductPrice mrp={selectedVariant.mrp} price={selectedVariant.price} />
-        <p className={`text-sm font-semibold ${stock.className}`} aria-live="polite">{stock.label}{selectedVariant.stock > 0 ? ` (${selectedVariant.stock} available)` : ''}</p>
-        <VariantSelector variants={product.variants} selectedVariant={selectedVariant} onSelect={handleVariantSelect} />
+        {selectedVariant && <><ProductPrice mrp={selectedVariant.mrp} price={selectedVariant.price} /><p className={`text-sm font-semibold ${stock.className}`} aria-live="polite">{stock.label}{selectedVariant.stock > 0 ? ` (${selectedVariant.stock} available)` : ''}</p></>}
+        <VariantSelector variants={product.variants} selectedStorage={selectedStorage} selectedColor={selectedColor} onStorageChange={handleStorageChange} onColorChange={handleColorChange} />
+        {combinationUnavailable && <p aria-live="polite" className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">This combination is unavailable. Choose another storage or color.</p>}
         <section aria-labelledby="emi-plans-heading" className="space-y-4 border-t border-slate-200 pt-6">
           <div><p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Investment-backed EMI</p><h2 className="mt-1 text-xl font-semibold text-slate-950" id="emi-plans-heading">EMI plans backed by mutual funds</h2><p className="mt-1 text-sm leading-6 text-slate-600">Choose a repayment plan that fits your monthly budget. These are illustrative demo plans, not lending terms or eligibility decisions.</p></div>
           <EmiPlans onSelect={setSelectedEmiPlan} plans={emiPlans} selectedPlan={selectedEmiPlan} />
           <SelectedEmiSummary plan={selectedEmiPlan} />
           {selectedEmiPlan && <><RepaymentPreview plan={selectedEmiPlan} /><aside className="rounded-xl border border-slate-200 bg-slate-50 p-5"><h2 className="font-semibold text-slate-950">Estimated eligibility</h2><p className="mt-2 text-sm text-slate-600">Illustrative investment value: <span className="font-semibold text-slate-900">{formatCurrency(demoInvestmentValue)}</span></p><p className={`mt-1 text-sm ${demoEligibility === 'eligible' ? 'text-emerald-700' : 'text-amber-700'}`}>{demoEligibility === 'eligible' ? 'Eligible for demo onboarding' : 'Additional verification required'}</p><p className="mt-2 text-xs text-slate-500">Demo rule: investment value must be at least 75% of product price. This is not a credit decision or real verification.</p></aside><Link className="inline-flex text-sm font-semibold text-indigo-600 hover:text-indigo-700" to="/repayment-preview">View full repayment schedule</Link></>}
         </section>
-        <div className="border-t border-slate-200 pt-6"><p className="mb-3 text-sm text-slate-600">Selected variant: <span className="font-medium text-slate-900">{selectedVariant.name || [selectedVariant.storage, selectedVariant.color].filter(Boolean).join(' · ') || 'Standard'}</span></p><div className="grid gap-3 sm:grid-cols-2"><button className="rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500" disabled={selectedVariant.stock <= 0} onClick={handleAddToCart} type="button">Add to Cart</button><button className="rounded-lg bg-indigo-200 px-4 py-3 font-semibold text-indigo-700" disabled type="button">Buy Now</button></div>{cartFeedback && <p aria-live="polite" className={`mt-3 text-sm font-medium ${cartFeedback.type === 'success' ? 'text-emerald-700' : 'text-red-700'}`}>{cartFeedback.message}</p>}<p className="mt-3 text-xs text-slate-500">Cart stores your selected variant and EMI plan. Checkout will be available soon.</p></div>
+        <div className="border-t border-slate-200 pt-6"><p className="mb-3 text-sm text-slate-600">Selected variant: <span className="font-medium text-slate-900">{selectedVariant?.name || [selectedStorage, selectedColor].filter(Boolean).join(' · ') || 'Standard'}</span></p><div className="grid gap-3 sm:grid-cols-2"><button className="rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500" disabled={!selectedVariant || selectedVariant.stock <= 0} onClick={handleAddToCart} type="button">Add to Cart</button><button className="rounded-lg bg-indigo-200 px-4 py-3 font-semibold text-indigo-700" disabled type="button">Buy Now</button></div>{cartFeedback && <p aria-live="polite" className={`mt-3 text-sm font-medium ${cartFeedback.type === 'success' ? 'text-emerald-700' : 'text-red-700'}`}>{cartFeedback.message}</p>}<p className="mt-3 text-xs text-slate-500">Cart stores your selected variant and EMI plan. Checkout will be available soon.</p></div>
       </div>
     </div>
   </section>;
