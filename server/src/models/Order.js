@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
@@ -12,7 +12,15 @@ const orderItemSchema = new Schema(
     color: { type: String, trim: true, maxlength: 80 },
     imageUrl: { type: String, trim: true, maxlength: 2_048 },
     unitPrice: { type: Number, required: true, min: 0.01 },
-    quantity: { type: Number, required: true, min: 1, validate: { validator: Number.isInteger, message: 'Quantity must be a whole number.' } },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+      validate: {
+        validator: Number.isInteger,
+        message: "Quantity must be a whole number.",
+      },
+    },
     emiPlanId: { type: Schema.Types.ObjectId, required: true },
     emiTenure: { type: Number, required: true, min: 1, max: 60 },
     emiMonthlyAmount: { type: Number, required: true, min: 0.01 },
@@ -27,10 +35,23 @@ const orderItemSchema = new Schema(
 const orderSchema = new Schema(
   {
     orderNumber: { type: String, required: true, unique: true, trim: true },
-    items: { type: [orderItemSchema], required: true, validate: { validator: (items) => items.length > 0, message: 'An order must contain at least one item.' } },
+    items: {
+      type: [orderItemSchema],
+      required: true,
+      validate: {
+        validator: (items) => items.length > 0,
+        message: "An order must contain at least one item.",
+      },
+    },
     customer: {
       fullName: { type: String, required: true, trim: true, maxlength: 120 },
-      email: { type: String, required: true, trim: true, lowercase: true, maxlength: 254 },
+      email: {
+        type: String,
+        required: true,
+        trim: true,
+        lowercase: true,
+        maxlength: 254,
+      },
       phone: { type: String, required: true, trim: true, maxlength: 30 },
     },
     shippingAddress: {
@@ -45,9 +66,19 @@ const orderSchema = new Schema(
     totalAmount: { type: Number, required: true, min: 0.01 },
     firstPaymentAmount: { type: Number, required: true, min: 0.01 },
     scheduledRepayment: { type: Number, required: true, min: 0.01 },
-    currency: { type: String, required: true, enum: ['INR'], default: 'INR' },
-    paymentMethod: { type: String, required: true, enum: ['razorpay'], default: 'razorpay' },
-    paymentStatus: { type: String, required: true, enum: ['paid', 'failed', 'refunded'], default: 'paid' },
+    currency: { type: String, required: true, enum: ["INR"], default: "INR" },
+    paymentMethod: {
+      type: String,
+      required: true,
+      enum: ["razorpay"],
+      default: "razorpay",
+    },
+    paymentStatus: {
+      type: String,
+      required: true,
+      enum: ["paid", "failed", "refunded"],
+      default: "paid",
+    },
     razorpayOrderId: { type: String, required: true, trim: true },
     razorpayPaymentId: { type: String, required: true, trim: true },
   },
@@ -56,4 +87,4 @@ const orderSchema = new Schema(
 
 orderSchema.index({ razorpayPaymentId: 1 }, { unique: true });
 
-export const Order = mongoose.model('Order', orderSchema);
+export const Order = mongoose.model("Order", orderSchema);

@@ -1,8 +1,59 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 export function HeroSection() {
-  return <section className="relative overflow-hidden rounded-[2rem] border border-indigo-100 bg-gradient-to-b from-indigo-50 via-white to-white px-6 py-16 text-center sm:px-10 sm:py-24 lg:px-20 lg:py-28">
-    <div aria-hidden="true" className="absolute -left-20 top-12 h-56 w-56 rounded-full bg-violet-200/45 blur-3xl" /><div aria-hidden="true" className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-indigo-200/50 blur-3xl" />
-    <div className="relative mx-auto max-w-4xl"><p className="mb-5 inline-flex rounded-full border border-indigo-200 bg-white/80 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">A smarter way to own your next phone</p><h1 className="text-4xl font-bold tracking-[-0.055em] text-slate-950 sm:text-6xl lg:text-7xl">Upgrade your phone.<br />Let your <em className="font-serif font-medium text-indigo-600">investments</em> stay in motion.</h1><p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Explore premium smartphones with flexible, illustrative EMI plans designed around an investment-aware shopping experience.</p><div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><Link className="rounded-xl bg-indigo-600 px-6 py-3.5 font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700" to="/#catalog">Start shopping <span aria-hidden="true">→</span></Link><a className="rounded-xl border border-slate-300 bg-white px-6 py-3.5 font-semibold text-slate-800 transition hover:border-indigo-300 hover:bg-indigo-50" href="/#emi-calculator">Calculate EMI</a></div><div className="mt-10 flex flex-wrap justify-center gap-2 text-sm font-medium text-slate-700"><span className="rounded-full bg-white px-3 py-2 shadow-sm">Flexible tenures</span><span className="rounded-full bg-white px-3 py-2 shadow-sm">Transparent plan details</span><span className="rounded-full bg-white px-3 py-2 shadow-sm">Demo investment-backed flow</span></div></div>
-  </section>;
+  return (
+    <section className="relative overflow-hidden rounded-[2rem] border border-indigo-100 bg-gradient-to-b from-indigo-50 via-white to-white px-6 py-16 text-center sm:px-10 sm:py-24 lg:px-20 lg:py-28">
+      <div
+        aria-hidden="true"
+        className="absolute -left-20 top-12 h-56 w-56 rounded-full bg-violet-200/45 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-indigo-200/50 blur-3xl"
+      />
+      <div className="relative mx-auto max-w-4xl">
+        <p className="mb-5 inline-flex rounded-full border border-indigo-200 bg-white/80 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">
+          A smarter way to own your next phone
+        </p>
+        <h1 className="text-4xl font-bold tracking-[-0.055em] text-slate-950 sm:text-6xl lg:text-7xl">
+          Upgrade your phone.
+          <br />
+          Let your{" "}
+          <em className="font-serif font-medium text-indigo-600">
+            investments
+          </em>{" "}
+          stay in motion.
+        </h1>
+        <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+          Explore premium smartphones with flexible, illustrative EMI plans
+          designed around an investment-aware shopping experience.
+        </p>
+        <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link
+            className="rounded-xl bg-indigo-600 px-6 py-3.5 font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700"
+            to="/#catalog"
+          >
+            Start shopping <span aria-hidden="true">→</span>
+          </Link>
+          <a
+            className="rounded-xl border border-slate-300 bg-white px-6 py-3.5 font-semibold text-slate-800 transition hover:border-indigo-300 hover:bg-indigo-50"
+            href="/#emi-calculator"
+          >
+            Calculate EMI
+          </a>
+        </div>
+        <div className="mt-10 flex flex-wrap justify-center gap-2 text-sm font-medium text-slate-700">
+          <span className="rounded-full bg-white px-3 py-2 shadow-sm">
+            Flexible tenures
+          </span>
+          <span className="rounded-full bg-white px-3 py-2 shadow-sm">
+            Transparent plan details
+          </span>
+          <span className="rounded-full bg-white px-3 py-2 shadow-sm">
+            Demo investment-backed flow
+          </span>
+        </div>
+      </div>
+    </section>
+  );
 }

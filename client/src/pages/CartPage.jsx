@@ -1,14 +1,137 @@
-import { Link } from 'react-router-dom';
-import { useCart } from '../hooks/useCart';
-import { formatInterestRate } from '../utils/emiHelpers';
-import { calculateCartSubtotal } from '../utils/cartHelpers';
-import { formatCurrency } from '../utils/productHelpers';
+import { Link } from "react-router-dom";
+import { useCart } from "../hooks/useCart";
+import { formatInterestRate } from "../utils/emiHelpers";
+import { calculateCartSubtotal } from "../utils/cartHelpers";
+import { formatCurrency } from "../utils/productHelpers";
 
 export function CartPage() {
   const { items, removeItem, updateQuantity } = useCart();
   const subtotal = calculateCartSubtotal(items);
 
-  if (!items.length) return <section className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center"><h1 className="text-xl font-semibold text-slate-950">Your cart is empty</h1><p className="mt-2 text-slate-600">Add a phone and select an EMI plan to see it here.</p><Link className="mt-5 inline-flex font-semibold text-indigo-600 hover:text-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" to="/">Browse catalogue</Link></section>;
+  if (!items.length)
+    return (
+      <section className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+        <h1 className="text-xl font-semibold text-slate-950">
+          Your cart is empty
+        </h1>
+        <p className="mt-2 text-slate-600">
+          Add a phone and select an EMI plan to see it here.
+        </p>
+        <Link
+          className="mt-5 inline-flex font-semibold text-indigo-600 hover:text-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          to="/"
+        >
+          Browse catalogue
+        </Link>
+      </section>
+    );
 
-  return <section className="space-y-6"><div><p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Your selections</p><h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">Shopping cart</h1></div><div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]"><div className="space-y-4">{items.map((item) => <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" key={item.id}><div className="flex gap-4"><div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">{item.imageUrl ? <img alt={item.productName} className="h-full w-full object-cover" src={item.imageUrl} /> : <div className="flex h-full items-center justify-center text-xs text-slate-500">No image</div>}</div><div className="min-w-0 flex-1"><h2 className="font-semibold text-slate-950">{item.productName}</h2><p className="mt-1 text-sm text-slate-600">{item.variantName || [item.storage, item.color].filter(Boolean).join(' · ')}</p><p className="mt-2 font-semibold text-slate-950">{formatCurrency(item.price)}</p></div></div><div className="mt-4 grid gap-4 border-t border-slate-100 pt-4 sm:grid-cols-[1fr_auto]"><div className="rounded-lg bg-slate-50 p-3 text-sm"><p className="font-semibold text-slate-900">EMI</p><p className="mt-1 text-slate-700">{formatCurrency(item.monthlyPayment)}/month · {item.emiTenure} months</p><p className="mt-1 text-slate-600">{formatInterestRate(item.interestRate)}{Number.isFinite(item.cashback) && item.cashback > 0 ? ` · ${formatCurrency(item.cashback)} cashback` : ''}</p></div><div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end"><label className="flex items-center gap-2 text-sm text-slate-600">Quantity <input aria-label={`Quantity for ${item.productName}`} className="w-16 rounded-md border border-slate-300 px-2 py-1 text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" min="1" onChange={(event) => updateQuantity(item.id, event.target.value)} type="number" value={item.quantity} /></label><button className="text-sm font-semibold text-red-700 hover:text-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700" onClick={() => removeItem(item.id)} type="button">Remove</button></div></div></article>)}</div><aside className="h-fit rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="text-lg font-semibold text-slate-950">Order summary</h2><div className="mt-4 flex items-baseline justify-between border-t border-slate-100 pt-4"><span className="text-slate-600">Product subtotal</span><span className="text-xl font-bold text-slate-950">{formatCurrency(subtotal)}</span></div><p className="mt-3 text-xs leading-5 text-slate-500">EMI amounts are financing details. The subtotal remains the product purchase amount.</p><Link className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" to="/checkout">Proceed to Checkout</Link></aside></div></section>;
+  return (
+    <section className="space-y-6">
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
+          Your selections
+        </p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">
+          Shopping cart
+        </h1>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="space-y-4">
+          {items.map((item) => (
+            <article
+              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+              key={item.id}
+            >
+              <div className="flex gap-4">
+                <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                  {item.imageUrl ? (
+                    <img
+                      alt={item.productName}
+                      className="h-full w-full object-cover"
+                      src={item.imageUrl}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-xs text-slate-500">
+                      No image
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-semibold text-slate-950">
+                    {item.productName}
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {item.variantName ||
+                      [item.storage, item.color].filter(Boolean).join(" · ")}
+                  </p>
+                  <p className="mt-2 font-semibold text-slate-950">
+                    {formatCurrency(item.price)}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-4 border-t border-slate-100 pt-4 sm:grid-cols-[1fr_auto]">
+                <div className="rounded-lg bg-slate-50 p-3 text-sm">
+                  <p className="font-semibold text-slate-900">EMI</p>
+                  <p className="mt-1 text-slate-700">
+                    {formatCurrency(item.monthlyPayment)}/month ·{" "}
+                    {item.emiTenure} months
+                  </p>
+                  <p className="mt-1 text-slate-600">
+                    {formatInterestRate(item.interestRate)}
+                    {Number.isFinite(item.cashback) && item.cashback > 0
+                      ? ` · ${formatCurrency(item.cashback)} cashback`
+                      : ""}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end">
+                  <label className="flex items-center gap-2 text-sm text-slate-600">
+                    Quantity{" "}
+                    <input
+                      aria-label={`Quantity for ${item.productName}`}
+                      className="w-16 rounded-md border border-slate-300 px-2 py-1 text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      min="1"
+                      onChange={(event) =>
+                        updateQuantity(item.id, event.target.value)
+                      }
+                      type="number"
+                      value={item.quantity}
+                    />
+                  </label>
+                  <button
+                    className="text-sm font-semibold text-red-700 hover:text-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+                    onClick={() => removeItem(item.id)}
+                    type="button"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+        <aside className="h-fit rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-950">
+            Order summary
+          </h2>
+          <div className="mt-4 flex items-baseline justify-between border-t border-slate-100 pt-4">
+            <span className="text-slate-600">Product subtotal</span>
+            <span className="text-xl font-bold text-slate-950">
+              {formatCurrency(subtotal)}
+            </span>
+          </div>
+          <p className="mt-3 text-xs leading-5 text-slate-500">
+            EMI amounts are financing details. The subtotal remains the product
+            purchase amount.
+          </p>
+          <Link
+            className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            to="/checkout"
+          >
+            Proceed to Checkout
+          </Link>
+        </aside>
+      </div>
+    </section>
+  );
 }

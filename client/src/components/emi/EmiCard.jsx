@@ -1,6 +1,51 @@
-import { calculateScheduledRepayment, formatInterestRate } from '../../utils/emiHelpers';
-import { formatCurrency } from '../../utils/productHelpers';
+import {
+  calculateScheduledRepayment,
+  formatInterestRate,
+} from "../../utils/emiHelpers";
+import { formatCurrency } from "../../utils/productHelpers";
 
 export function EmiCard({ plan, isRecommended, isSelected, onSelect }) {
-  return <button aria-pressed={isSelected} className={`relative w-full rounded-2xl border p-5 text-left transition duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${isSelected ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-200' : 'border-slate-200 bg-white hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md'}`} onClick={() => onSelect(plan)} type="button"><div className="flex items-start justify-between gap-3"><div><p className="text-xl font-bold tracking-tight text-slate-950">{formatCurrency(plan.monthlyAmount)} <span className="text-sm font-medium text-slate-600">/ month</span></p><p className="mt-1 text-sm font-semibold text-slate-700">{plan.tenure} months</p></div>{isSelected && <span className="rounded-full bg-indigo-600 px-2.5 py-1 text-xs font-bold text-white">✓ Selected</span>}</div><div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-sm"><p><span className="block text-slate-500">Interest</span><strong>{formatInterestRate(plan.interestRate)}</strong></p><p><span className="block text-slate-500">Cashback</span><strong className="text-emerald-700">{formatCurrency(plan.cashback || 0)}</strong></p></div><p className="mt-3 text-sm text-slate-600">Total payable <strong className="text-slate-900">{formatCurrency(calculateScheduledRepayment(plan))}</strong></p></button>;
+  return (
+    <button
+      aria-pressed={isSelected}
+      className={`relative w-full rounded-2xl border p-5 text-left transition duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${isSelected ? "border-indigo-600 bg-indigo-50 ring-2 ring-indigo-200" : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"}`}
+      onClick={() => onSelect(plan)}
+      type="button"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xl font-bold tracking-tight text-slate-950">
+            {formatCurrency(plan.monthlyAmount)}{" "}
+            <span className="text-sm font-medium text-slate-600">/ month</span>
+          </p>
+          <p className="mt-1 text-sm font-semibold text-slate-700">
+            {plan.tenure} months
+          </p>
+        </div>
+        {isSelected && (
+          <span className="rounded-full bg-indigo-600 px-2.5 py-1 text-xs font-bold text-white">
+            ✓ Selected
+          </span>
+        )}
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-sm">
+        <p>
+          <span className="block text-slate-500">Interest</span>
+          <strong>{formatInterestRate(plan.interestRate)}</strong>
+        </p>
+        <p>
+          <span className="block text-slate-500">Cashback</span>
+          <strong className="text-emerald-700">
+            {formatCurrency(plan.cashback || 0)}
+          </strong>
+        </p>
+      </div>
+      <p className="mt-3 text-sm text-slate-600">
+        Total payable{" "}
+        <strong className="text-slate-900">
+          {formatCurrency(calculateScheduledRepayment(plan))}
+        </strong>
+      </p>
+    </button>
+  );
 }

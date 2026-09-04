@@ -1,6 +1,9 @@
-import { useMemo, useState } from 'react';
-import { calculateReducingBalancePayment, formatInterestRate } from '../../utils/emiHelpers';
-import { formatCurrency } from '../../utils/productHelpers';
+import { useMemo, useState } from "react";
+import {
+  calculateReducingBalancePayment,
+  formatInterestRate,
+} from "../../utils/emiHelpers";
+import { formatCurrency } from "../../utils/productHelpers";
 
 const tenures = [3, 6, 12, 24, 36, 48, 60];
 
@@ -8,8 +11,96 @@ export function EmiCalculator() {
   const [amount, setAmount] = useState(79999);
   const [tenure, setTenure] = useState(12);
   const interestRate = tenure >= 36 ? 10.5 : 0;
-  const monthlyAmount = useMemo(() => Math.round(calculateReducingBalancePayment(amount, interestRate, tenure) ?? 0), [amount, interestRate, tenure]);
+  const monthlyAmount = useMemo(
+    () =>
+      Math.round(
+        calculateReducingBalancePayment(amount, interestRate, tenure) ?? 0,
+      ),
+    [amount, interestRate, tenure],
+  );
   const total = monthlyAmount * tenure;
   const cashback = tenure >= 12 ? 1000 : 0;
-  return <section className="grid gap-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-indigo-950/5 sm:p-9 lg:grid-cols-[1.15fr_.85fr] lg:p-12"><div><p className="text-sm font-bold uppercase tracking-[0.14em] text-indigo-600">Plan your purchase</p><h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">A clear EMI view, before you choose.</h2><label className="mt-8 block text-sm font-semibold text-slate-800" htmlFor="purchase-amount">Purchase amount <span className="float-right text-lg text-indigo-700">{formatCurrency(amount)}</span></label><input aria-label="Purchase amount" className="mt-4 w-full accent-indigo-600" id="purchase-amount" max="160000" min="30000" onChange={(event) => setAmount(Number(event.target.value))} step="1000" type="range" value={amount} /><div className="mt-2 flex justify-between text-xs text-slate-500"><span>₹30,000</span><span>₹1,60,000</span></div><p className="mt-8 text-sm font-semibold text-slate-800">Choose a tenure</p><div className="mt-3 flex flex-wrap gap-2">{tenures.map((value) => <button aria-pressed={tenure === value} className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${tenure === value ? 'bg-indigo-600 text-white shadow-sm' : 'border border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-700'}`} key={value} onClick={() => setTenure(value)} type="button">{value} mo</button>)}</div></div><aside className="rounded-2xl bg-slate-950 p-6 text-white sm:p-8"><p className="text-sm font-medium text-indigo-200">Estimated monthly EMI</p><p className="mt-2 text-4xl font-bold tracking-tight">{formatCurrency(monthlyAmount)}<span className="text-base font-medium text-slate-400"> / mo</span></p><div className="mt-8 space-y-4 border-t border-white/15 pt-6 text-sm"><div className="flex justify-between gap-4"><span className="text-slate-400">Interest rate</span><span className="font-semibold">{formatInterestRate(interestRate)}</span></div><div className="flex justify-between gap-4"><span className="text-slate-400">Scheduled repayment</span><span className="font-semibold">{formatCurrency(total)}</span></div><div className="flex justify-between gap-4"><span className="text-slate-400">Approx. cashback</span><span className="font-semibold text-emerald-300">{formatCurrency(cashback)}</span></div></div><p className="mt-7 text-xs leading-5 text-slate-400">Illustrative calculation using the same zero-interest / reducing-balance approach as the available demo plans.</p></aside></section>;
+  return (
+    <section className="grid gap-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-indigo-950/5 sm:p-9 lg:grid-cols-[1.15fr_.85fr] lg:p-12">
+      <div>
+        <p className="text-sm font-bold uppercase tracking-[0.14em] text-indigo-600">
+          Plan your purchase
+        </p>
+        <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+          A clear EMI view, before you choose.
+        </h2>
+        <label
+          className="mt-8 block text-sm font-semibold text-slate-800"
+          htmlFor="purchase-amount"
+        >
+          Purchase amount{" "}
+          <span className="float-right text-lg text-indigo-700">
+            {formatCurrency(amount)}
+          </span>
+        </label>
+        <input
+          aria-label="Purchase amount"
+          className="mt-4 w-full accent-indigo-600"
+          id="purchase-amount"
+          max="160000"
+          min="30000"
+          onChange={(event) => setAmount(Number(event.target.value))}
+          step="1000"
+          type="range"
+          value={amount}
+        />
+        <div className="mt-2 flex justify-between text-xs text-slate-500">
+          <span>₹30,000</span>
+          <span>₹1,60,000</span>
+        </div>
+        <p className="mt-8 text-sm font-semibold text-slate-800">
+          Choose a tenure
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {tenures.map((value) => (
+            <button
+              aria-pressed={tenure === value}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${tenure === value ? "bg-indigo-600 text-white shadow-sm" : "border border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-700"}`}
+              key={value}
+              onClick={() => setTenure(value)}
+              type="button"
+            >
+              {value} mo
+            </button>
+          ))}
+        </div>
+      </div>
+      <aside className="rounded-2xl bg-slate-950 p-6 text-white sm:p-8">
+        <p className="text-sm font-medium text-indigo-200">
+          Estimated monthly EMI
+        </p>
+        <p className="mt-2 text-4xl font-bold tracking-tight">
+          {formatCurrency(monthlyAmount)}
+          <span className="text-base font-medium text-slate-400"> / mo</span>
+        </p>
+        <div className="mt-8 space-y-4 border-t border-white/15 pt-6 text-sm">
+          <div className="flex justify-between gap-4">
+            <span className="text-slate-400">Interest rate</span>
+            <span className="font-semibold">
+              {formatInterestRate(interestRate)}
+            </span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-slate-400">Scheduled repayment</span>
+            <span className="font-semibold">{formatCurrency(total)}</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-slate-400">Approx. cashback</span>
+            <span className="font-semibold text-emerald-300">
+              {formatCurrency(cashback)}
+            </span>
+          </div>
+        </div>
+        <p className="mt-7 text-xs leading-5 text-slate-400">
+          Illustrative calculation using the same zero-interest /
+          reducing-balance approach as the available demo plans.
+        </p>
+      </aside>
+    </section>
+  );
 }
