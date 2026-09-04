@@ -1,8 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../../hooks/useCart";
 export function FinalShell({ children }) {
   const { items } = useCart();
-  const count = items.reduce((n, item) => n + item.quantity, 0);
+  const { pathname } = useLocation();
+  const count = items.reduce((n, item) => n + Math.max(1, Number(item.quantity) || 1), 0);
+  const utilityClass = `rounded-lg px-3 py-2 transition hover:bg-violet-50 hover:text-violet-700 ${pathname === '/orders' || pathname.startsWith('/orders/') ? 'bg-violet-50 text-violet-700' : ''}`;
   return (
     <div className="min-h-screen bg-[#fcfbff] pb-20">
       <header className="sticky top-0 z-40 border-b border-violet-100 bg-white/90 backdrop-blur">
@@ -32,6 +34,7 @@ export function FinalShell({ children }) {
             >
               How It Works
             </a>
+            <Link className={utilityClass} to="/orders">Orders</Link>
             <Link
               className="relative ml-1 grid h-10 w-10 place-items-center rounded-xl border border-violet-100 bg-white text-slate-800 hover:bg-violet-50"
               to="/cart"

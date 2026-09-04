@@ -6,7 +6,7 @@ function readCart() {
   try {
     const storedCart = window.localStorage.getItem(cartStorageKey);
     const parsedCart = storedCart ? JSON.parse(storedCart) : [];
-    return Array.isArray(parsedCart) ? parsedCart : [];
+    return Array.isArray(parsedCart) ? parsedCart.map((item) => ({ ...item, quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)) })) : [];
   } catch {
     return [];
   }
@@ -22,9 +22,10 @@ export function CartProvider({ children }) {
 
   function addItem(item) {
     setItems((currentItems) => {
-      const matchingItem = currentItems.find((currentItem) => currentItem.id === item.id);
+      const matchingItem = currentItems.find((currentItem) => currentItem.productId === item.productId && currentItem.variantId === item.variantId && currentItem.storage === item.storage && currentItem.color === item.color && currentItem.emiPlanId === item.emiPlanId);
       if (!matchingItem) return [...currentItems, item];
-      return currentItems.map((currentItem) => currentItem.id === item.id ? { ...currentItem, quantity: currentItem.quantity + 1 } : currentItem);
+      const nextQuantity = Math.max(1, Number(matchingItem.quantity) || 1) + 1;
+      return currentItems.map((currentItem) => currentItem.id === matchingItem.id ? { ...currentItem, quantity: nextQuantity } : currentItem);
     });
     setCartNotice('Added to cart');
   }

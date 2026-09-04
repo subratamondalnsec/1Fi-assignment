@@ -7,7 +7,7 @@ import {
 } from "../utils/emiHelpers";
 import { formatCurrency } from "../utils/productHelpers";
 export function FinalCartPage() {
-  const { items, removeItem } = useCart();
+  const { items, removeItem, updateQuantity } = useCart();
   if (!items.length)
     return (
       <section className="mx-auto max-w-xl rounded-2xl border border-dashed border-violet-200 bg-white p-8 text-center">
@@ -84,13 +84,7 @@ export function FinalCartPage() {
                     {formatCurrency(item.price)}
                   </p>
                 </div>
-                <button
-                  className="mt-3 text-sm font-semibold text-rose-700"
-                  onClick={() => removeItem(item.id)}
-                  type="button"
-                >
-                  Remove
-                </button>
+                <div className="mt-3 flex items-center justify-between gap-3"><div className="inline-flex items-center rounded-lg border border-violet-100"><button aria-label={`Decrease quantity for ${item.productName}`} className="px-2.5 py-1 text-violet-700 disabled:text-slate-300" disabled={item.quantity <= 1} onClick={() => updateQuantity(item.id, item.quantity - 1)} type="button">−</button><span aria-label={`Quantity ${item.quantity}`} className="min-w-8 text-center text-sm font-bold">{item.quantity}</span><button aria-label={`Increase quantity for ${item.productName}`} className="px-2.5 py-1 text-violet-700" onClick={() => updateQuantity(item.id, item.quantity + 1)} type="button">+</button></div><button className="text-sm font-semibold text-rose-700" onClick={() => removeItem(item.id)} type="button">Remove</button></div>
               </div>
             </article>
           ))}
