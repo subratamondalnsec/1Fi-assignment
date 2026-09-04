@@ -12,26 +12,7 @@ function createReceipt() {
 
 export async function createOrder(request, response, next) {
   const { amount, items, currency: requestedCurrency } = request.body ?? {};
-  let authoritativeAmount = amount;
-  if (Array.isArray(items)) {
-    const products = await Product.find({ _id: { $in: items.map((item) => item?.productId) } });
-    const productsById = new Map(products.map((product) => [product._id.toString(), product]));
-    authoritativeAmount = 0;
-    for (const item of items) {
-      const product = productsById.get(item?.productId);
-      const variant = product?.variants.id(item?.variantId);
-      const plan = variant?.emiPlans.id(item?.emiPlanId);
-      const quantity = Number(item?.quantity);
-      if (!product || !variant || !plan || !Number.isInteger(quantity) || quantity < 1) return response.status(400).json({ success: false, message: 'The selected financing plan is invalid.' });
-      authoritativeAmount += plan.monthlyAmount * quantity;
-    }
-  }
-  const amountInRupees = typeof authoritativeAmount === 'number' ? authoritativeAmount : Number(authoritativeAmount);
   const currency = typeof requestedCurrency === 'string' ? requestedCurrency.trim().toUpperCase() : 'INR';
-
-  if (amount === undefined || amount === null || amount === '' || !Number.isFinite(amountInRupees) || amountInRupees <= 0) {
-    return response.status(400).json({ success: false, message: 'Amount must be a positive numeric value in rupees.' });
-  }
 
   if (!supportedCurrencies.has(currency)) {
     return response.status(400).json({ success: false, message: 'Unsupported currency. Only INR is supported.' });
@@ -39,6 +20,22 @@ export async function createOrder(request, response, next) {
 
   let amountInPaise;
   try {
+    let authoritativeAmount = amount;
+    if (Array.isArray(items)) {
+      const products = await Product.find({ _id: { $in: items.map((item) => item?.productId) } });
+      const productsById = new Map(products.map((product) => [product._id.toString(), product]));
+      authoritativeAmount = 0;
+      for (const item of items) {
+        const product = productsById.get(item?.productId);
+        const variant = product?.variants.id(item?.variantId);
+        const plan = variant?.emiPlans.id(item?.emiPlanId);
+        const quantity = Number(item?.quantity);
+        if (!product || !variant || !plan || !Number.isInteger(quantity) || quantity < 1) return response.status(400).json({ success: false, message: 'The selected financing plan is invalid.' });
+        authoritativeAmount += plan.monthlyAmount * quantity;
+      }
+    }
+    const amountInRupees = typeof authoritativeAmount === 'number' ? authoritativeAmount : Number(authoritativeAmount);
+    if ((amount === undefined || amount === null || amount === '') && !Array.isArray(items) || !Number.isFinite(amountInRupees) || amountInRupees <= 0) return response.status(400).json({ success: false, message: 'Amount must be a positive numeric value in rupees.' });
     amountInPaise = toPaise(amountInRupees);
   } catch (error) {
     return response.status(400).json({ success: false, message: error.message });
