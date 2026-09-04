@@ -14,6 +14,7 @@ function readCart() {
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState(readCart);
+  const [cartNotice, setCartNotice] = useState(null);
 
   useEffect(() => {
     window.localStorage.setItem(cartStorageKey, JSON.stringify(items));
@@ -25,6 +26,7 @@ export function CartProvider({ children }) {
       if (!matchingItem) return [...currentItems, item];
       return currentItems.map((currentItem) => currentItem.id === item.id ? { ...currentItem, quantity: currentItem.quantity + 1 } : currentItem);
     });
+    setCartNotice('Added to cart');
   }
 
   function updateQuantity(itemId, quantity) {
@@ -40,6 +42,6 @@ export function CartProvider({ children }) {
     setItems([]);
   }
 
-  const value = useMemo(() => ({ items, addItem, updateQuantity, removeItem, clearCart }), [items]);
+  const value = useMemo(() => ({ items, addItem, updateQuantity, removeItem, clearCart, cartNotice, dismissCartNotice: () => setCartNotice(null) }), [items, cartNotice]);
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
