@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { FinalShell } from "./components/layout/FinalShell";
 import { CartProvider } from "./context/CartContext.jsx";
@@ -12,6 +13,9 @@ import { OrdersPage } from "./pages/OrdersPage";
 import { OrderRepaymentPage } from "./pages/OrderRepaymentPage";
 
 export default function App() {
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/health`).catch(() => {});
+  }, []);
   return (
     <CartProvider>
       <FinalShell>
