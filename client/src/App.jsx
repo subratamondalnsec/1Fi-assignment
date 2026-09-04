@@ -1,16 +1,16 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { AppShell } from './components/layout/AppShell';
+import { FinalShell } from './components/layout/FinalShell';
 import { CartProvider } from './context/CartContext.jsx';
-import { CartPage } from './pages/CartPage';
+import { FinalCartPage } from './pages/FinalCartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
-import { HomePage } from './pages/HomePage';
+import { FinalHomePage } from './pages/FinalHomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
-import { OrderSuccessPage } from './pages/OrderSuccessPage';
+import { FinalOrderSuccessPage } from './pages/FinalOrderSuccessPage';
 import { ProductDetailsPage } from './pages/ProductDetailsPage';
 import { RepaymentPreviewPage } from './pages/RepaymentPreviewPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { OrderRepaymentPage } from './pages/OrderRepaymentPage';
 
 export default function App() {
-  return <CartProvider><AppShell><Routes><Route path="/" element={<HomePage />} /><Route path="/products/:slug" element={<ProductDetailsPage />} /><Route path="/cart" element={<CartPage />} /><Route path="/checkout" element={<CheckoutPage />} /><Route path="/orders" element={<OrdersPage />} /><Route path="/orders/:orderId/repayment" element={<OrderRepaymentPage />} /><Route path="/repayment-preview" element={<RepaymentPreviewPage />} /><Route path="/order-success/:orderId" element={<OrderSuccessPage />} /><Route path="/404" element={<NotFoundPage />} /><Route path="*" element={<Navigate to="/404" replace />} /></Routes></AppShell></CartProvider>;
+  return <CartProvider><FinalShell><Routes><Route path="/" element={<FinalHomePage />} /><Route path="/products/:slug" element={<ProductDetailsPage />} /><Route path="/cart" element={<FinalCartPage />} /><Route path="/checkout" element={<CheckoutPage />} /><Route path="/orders" element={<OrdersPage />} /><Route path="/orders/:orderId/repayment" element={<OrderRepaymentPage />} /><Route path="/repayment-preview" element={<RepaymentPreviewPage />} /><Route path="/order-success/:orderId" element={<FinalOrderSuccessPage />} /><Route path="/404" element={<NotFoundPage />} /><Route path="*" element={<Navigate to="/404" replace />} /></Routes></FinalShell></CartProvider>;
 }

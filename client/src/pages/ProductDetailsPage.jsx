@@ -9,7 +9,7 @@ import { VariantSelector } from '../components/product/VariantSelector';
 import { useCart } from '../hooks/useCart';
 import { fetchProductBySlug } from '../services/productApi';
 import { buildCartItem } from '../utils/cartHelpers';
-import { calculateDemoInvestmentCoverage, getDemoEligibility } from '../utils/emiHelpers';
+import { calculateDemoInvestmentCoverage, getFirstPaymentAmount, getDemoEligibility } from '../utils/emiHelpers';
 import { formatCurrency, getStockStatus } from '../utils/productHelpers';
 import { getVariantByStorageAndColor } from '../utils/variantResolver';
 
@@ -23,6 +23,7 @@ export function ProductDetailsPage() {
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
   const [cartFeedback, setCartFeedback] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -88,6 +89,7 @@ export function ProductDetailsPage() {
   }
 
   function handleAddToCart() {
+    if (isAdding) return;
     if (!selectedVariant) {
       setCartFeedback({ type: 'error', message: 'This combination is unavailable.' });
       return;
@@ -97,14 +99,22 @@ export function ProductDetailsPage() {
       return;
     }
     try {
+      setIsAdding(true);
       addItem(buildCartItem(product, selectedVariant, selectedEmiPlan));
       setCartFeedback({ type: 'success', message: 'Added to cart with the selected variant and EMI plan.' });
+      window.setTimeout(() => setCartFeedback(null), 2400);
     } catch (cartError) {
       setCartFeedback({ type: 'error', message: cartError.message || 'This selection could not be added to cart.' });
+    } finally {
+      window.setTimeout(() => setIsAdding(false), 450);
     }
   }
 
-  return <section className="space-y-6">
+  const firstPayment = getFirstPaymentAmount(selectedEmiPlan);
+  const purchaseDisabled = !selectedVariant || selectedVariant.stock <= 0 || !selectedEmiPlan || isAdding;
+  const purchaseLabel = !selectedVariant ? 'Unavailable' : !selectedEmiPlan ? 'Select an EMI plan' : isAdding ? 'Adding...' : cartFeedback?.type === 'success' ? '✓ Added to Cart' : 'Add to Cart';
+
+  return <section className="space-y-6 pb-36 sm:pb-32">
     <Link className="inline-flex text-sm font-medium text-indigo-600 hover:text-indigo-700" to="/">← Back to catalogue</Link>
     <div className="grid gap-8 lg:grid-cols-2 lg:items-start lg:gap-12">
       <div className="lg:sticky lg:top-24"><ProductGallery images={selectedVariant?.images} imageUrl={selectedVariant?.imageUrl} productName={product.name} variantName={selectedVariant?.name} selectedColor={selectedColor} /></div>
@@ -119,9 +129,10 @@ export function ProductDetailsPage() {
           <SelectedEmiSummary plan={selectedEmiPlan} />
           {selectedEmiPlan && <><RepaymentPreview plan={selectedEmiPlan} /><aside className="rounded-xl border border-slate-200 bg-slate-50 p-5"><h2 className="font-semibold text-slate-950">Estimated eligibility</h2><p className="mt-2 text-sm text-slate-600">Illustrative investment value: <span className="font-semibold text-slate-900">{formatCurrency(demoInvestmentValue)}</span></p><p className={`mt-1 text-sm ${demoEligibility === 'eligible' ? 'text-emerald-700' : 'text-amber-700'}`}>{demoEligibility === 'eligible' ? 'Eligible for demo onboarding' : 'Additional verification required'}</p><p className="mt-2 text-xs text-slate-500">Demo rule: investment value must be at least 75% of product price. This is not a credit decision or real verification.</p></aside><Link className="inline-flex text-sm font-semibold text-indigo-600 hover:text-indigo-700" to="/repayment-preview">View full repayment schedule</Link></>}
         </section>
-        <div className="border-t border-slate-200 pt-6"><p className="mb-3 text-sm text-slate-600">Selected variant: <span className="font-medium text-slate-900">{selectedVariant?.name || [selectedStorage, selectedColor].filter(Boolean).join(' · ') || 'Standard'}</span></p><div className="grid gap-3 sm:grid-cols-2"><button className="rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500" disabled={!selectedVariant || selectedVariant.stock <= 0} onClick={handleAddToCart} type="button">Add to Cart</button><button className="rounded-lg bg-indigo-200 px-4 py-3 font-semibold text-indigo-700" disabled type="button">Buy Now</button></div>{cartFeedback && <p aria-live="polite" className={`mt-3 text-sm font-medium ${cartFeedback.type === 'success' ? 'text-emerald-700' : 'text-red-700'}`}>{cartFeedback.message}</p>}<p className="mt-3 text-xs text-slate-500">Cart stores your selected variant and EMI plan. Checkout will be available soon.</p></div>
+        <div className="border-t border-slate-200 pt-6"><p className="mb-3 text-sm text-slate-600">Selected variant: <span className="font-medium text-slate-900">{selectedVariant?.name || [selectedStorage, selectedColor].filter(Boolean).join(' · ') || 'Standard'}</span></p>{cartFeedback && <p aria-live="polite" className={`text-sm font-medium ${cartFeedback.type === 'success' ? 'text-emerald-700' : 'text-red-700'}`}>{cartFeedback.message}</p>}</div>
       </div>
     </div>
+    <div aria-label="Selected purchase plan" className="fixed inset-x-3 bottom-3 z-30 mx-auto max-w-4xl rounded-2xl border border-violet-100 bg-white/95 p-3 shadow-xl shadow-violet-950/10 backdrop-blur sm:bottom-5 sm:grid sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-center sm:gap-4 sm:px-5"><div className="hidden sm:block"><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Selected EMI</p><p className="font-bold text-slate-950">{selectedEmiPlan ? `${formatCurrency(selectedEmiPlan.monthlyAmount)} / month` : 'Choose a plan'}</p></div><div className="hidden sm:block"><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Pay today</p><p className="font-bold text-slate-950">{firstPayment ? formatCurrency(firstPayment) : '—'}</p></div><div className="hidden sm:block"><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Next EMI</p><p className="font-bold text-slate-950">{selectedEmiPlan ? formatCurrency(selectedEmiPlan.monthlyAmount) : '—'}</p></div><div className="flex items-center justify-between gap-3 sm:block"><p className="text-xs font-semibold text-slate-500 sm:hidden">{selectedEmiPlan ? `${formatCurrency(selectedEmiPlan.monthlyAmount)}/mo · Pay today ${firstPayment ? formatCurrency(firstPayment) : '—'}` : 'Select an EMI plan to continue'}</p><button className={`mt-0 min-h-11 shrink-0 rounded-xl px-5 py-3 font-semibold text-white transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:bg-slate-300 sm:mt-0 ${cartFeedback?.type === 'success' ? 'bg-emerald-600' : 'bg-violet-600 hover:bg-violet-700 active:scale-[.98]'}`} disabled={purchaseDisabled} onClick={handleAddToCart} type="button">{purchaseLabel}</button></div></div>
   </section>;
 }
 
